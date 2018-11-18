@@ -1,10 +1,11 @@
 %Practicing with Cardiac MRI images
+close All,
 clear All,
 clc
 
 %STEP1: Loading the MRI image
-img = imread('mri_heart_1.jpg');
-%img = imread('Phantom1.png');
+%img = imread('mri_heart_1.jpg');
+img = imread('Phantom1.png');
 img = rgb2gray(img);
 figure(1)
 imshow(img)
@@ -43,7 +44,7 @@ imshow(real(img_kspace))
     
     %US Scheme 4: Spiral undersampling
     dtheta = 5;
-    W = 1/20000;
+    W = 1/10000;
     theta = (2*pi/360).*[0:dtheta:floor(400/W)];
     spiral_x = ((W*360/2*pi).*(1.*theta).*cos(theta))';
     spiral_y = ((W*360/2*pi).*(1.*theta).*sin(theta))';
@@ -67,7 +68,7 @@ imshow(real(img_kspace))
 img_recov = ifft2(ifftshift(und_samp_kspace));
 figure(4)
 imshow(uint8(img_recov))
-title('50% undersampled')
+title('10% undersampled')
 
 % %STEP5: Comparing images by taking histogram
 % figure(5), histogram(img)
