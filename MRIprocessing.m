@@ -6,8 +6,8 @@ clc
 %STEP1: Loading the MRI image
 %Select either the mr-heart image or created test image.
 
-img = imread('mri_heart_1.jpg');
-%img = imread('Phantom1.png');
+%img = imread('mri_heart_1.jpg');
+img = imread('Phantom1.png');
 img = rgb2gray(img);
 figure(1)
 imshow(img)

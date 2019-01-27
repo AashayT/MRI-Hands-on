@@ -43,7 +43,7 @@ function [new_filtered_image] = CSreconstruction(und_samp_kspace)
     %figure(), imagesc(filtered_image), colormap gray
     
     %Iterations are hard coded, can be provided as function argument
-    for i=1:100
+    for i=1:500
     %% Calculating the energy functionals
 
         % Using L2-Norm for calculating data fidelity term. Considering that the
@@ -82,7 +82,7 @@ function [new_filtered_image] = CSreconstruction(und_samp_kspace)
         L2 = divergence(X, Y, (grad_filtered_x./(Norm_grad)), (grad_filtered_y./(Norm_grad)));
         %L2 = divergence(X, Y, (grad_filtered_x), (grad_filtered_y));
 
-        dL_du = 0.01*L1 - lambda*L2;
+        dL_du = 0.00*L1 - lambda*L2;
         
         %Writing the solution in form of a linear equation AX=B. 
         %Following formulation may not be perfect. Please verify
