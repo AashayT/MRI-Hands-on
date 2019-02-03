@@ -42,7 +42,7 @@ imshow(real(img_kspace))
 %     und_samp_kspace = img_kspace-und_samp_temp;
     
     %US Scheme 4: Spiral undersampling
-    dtheta = 5;
+    dtheta = 5;            % [15= 3.5% ; 10 = 5.5% ; 5 = 10%] 
     W = 1/10000;
     theta = (2*pi/360).*[0:dtheta:floor(400/W)];
     spiral_x = ((W*360/2*pi).*(1.*theta).*cos(theta))';
@@ -63,7 +63,7 @@ imshow(real(img_kspace))
     imshow(real(und_samp_kspace))
     title([num2str(100*factorUS) ' percent undersampling'])
     
-%STEP4: Acquiring the image back [complete k-space sampling]
+%STEP4: Acquiring the image back [Sparse k-space sampling]
 img_recov = ifft2(ifftshift(und_samp_kspace));
 figure(4)
 imshow(uint8(img_recov))

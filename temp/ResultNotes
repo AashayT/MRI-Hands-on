@@ -1,0 +1,7 @@
+Old code --> Edge smoothening applied explicitly after 100 iterations
+
+New code --> Edge stiffness factored into variational denoising equation
+
+* New reconstructed image looks more realistic and preserve the texture information rather than creating a piecewise constant image
+* Many smaller structures are visible in the new reconstruction
+* In the older framework, smaller structures are completely lost. 
