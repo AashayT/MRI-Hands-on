@@ -7,15 +7,20 @@ clc
 %Select either the mr-heart image or created test image.
 
 %img = imread('mri_heart_1.jpg');
-img = imread('Phantom1.png');
+img = imread('Cartesian_Heart.PNG');
 img = rgb2gray(img);
 figure(1)
 imshow(img)
 
+%resizing to realistic proportions
+resized_img = imresize(img,[70,78]);
+figure()
+imshow(resized_img)
+
 %STEP2: Taking Fourier transform of MRI image
-img_kspace = fftshift(fft2(img));
-figure(2)
-imshow(real(img_kspace))
+img_kspace = fftshift(fft2(resized_img));
+figure()
+imagesc(real(img_kspace)), colormap gray
 
 %STEP3: Undersampling the k-space. 
 %FFt values are rearranged before undersampling using fftshift
@@ -40,32 +45,69 @@ imshow(real(img_kspace))
 %        und_samp_temp(sample_points(i,1), sample_points(i,2)) = 0+0j;
 %     end
 %     und_samp_kspace = img_kspace-und_samp_temp;
-    
-    %US Scheme 4: Spiral undersampling
-    dtheta = 5;            % [15= 3.5% ; 10 = 5.5% ; 5 = 10%] 
-    W = 1/10000;
-    theta = (2*pi/360).*[0:dtheta:floor(400/W)];
-    spiral_x = ((W*360/2*pi).*(1.*theta).*cos(theta))';
-    spiral_y = ((W*360/2*pi).*(1.*theta).*sin(theta))';
-    spiral_points = floor([spiral_x spiral_y]);
-    und_samp_temp = img_kspace;
-    for i=1:size(spiral_points,1)
-       if abs(spiral_points(i,1))< 0.5*(size(img_kspace, 1)) && abs(spiral_points(i,2))< 0.5*(size(img_kspace, 2))
-           und_samp_temp(spiral_points(i,1) + floor(0.5*(size(img_kspace, 1))), spiral_points(i,2)+ floor(0.5*(size(img_kspace, 2)))) = 0+0j;
-       end
-    end
-    und_samp_kspace = img_kspace-und_samp_temp;
-    
+%     
+%    %US Scheme 4: Spiral undersampling
+%     dtheta = 5;            % [15= 3.5% ; 10 = 5.5% ; 5 = 10%] 
+%     W = 1/10000;
+%     theta = (2*pi/360).*[0:dtheta:floor(400/W)];
+%     spiral_x = ((W*360/2*pi).*(1.*theta).*cos(theta))';
+%     spiral_y = ((W*360/2*pi).*(1.*theta).*sin(theta))';
+%     spiral_points = floor([spiral_x spiral_y]);
+%     und_samp_temp = img_kspace;
+%     for i=1:size(spiral_points,1)
+%        if abs(spiral_points(i,1))< 0.5*(size(img_kspace, 1)) && abs(spiral_points(i,2))< 0.5*(size(img_kspace, 2))
+%            und_samp_temp(spiral_points(i,1) + floor(0.5*(size(img_kspace, 1))), spiral_points(i,2)+ floor(0.5*(size(img_kspace, 2)))) = 0+0j;
+%        end
+%     end
+%     und_samp_kspace = img_kspace-und_samp_temp;
+%     
+     %US Scheme 5: Radial undersampling
+      num_radial_spokes = 8;
+      dtheta = 360/(2*num_radial_spokes);
+      angles = [0:dtheta:359];
+      
+      rows = size(img_kspace,1);
+      cols = size(img_kspace,2);
+      
+      x_cent = floor(cols/2) + 1;
+      y_cent = floor(rows/2) + 1;
+      
+      img_kspace_corrupted = img_kspace;
+      und_samp_pattern = 0*real(img_kspace);
+      for i = 1:num_radial_spokes
+          
+          slope = tan(angles(i)*2*pi/360);
+          if abs(slope) <=1
+              radial{i} = [1:cols; max(1, round(slope*(x_cent - [1:cols]) + y_cent))];
+          elseif abs(slope) > 1
+              radial{i} = [max(1, round(x_cent + ((y_cent - [1:rows])/slope))); 1:rows];  
+          end    
+      end
+      
+      for i = 1:num_radial_spokes
+          for j = 1:length(radial{i})
+              if radial{i}(2,j) < rows && radial{i}(1,j) <cols
+                img_kspace_corrupted(radial{i}(2,j), radial{i}(1,j)) = 0 + 0j;
+                und_samp_pattern(radial{i}(2,j), radial{i}(1,j)) = 255;
+              end
+          end
+      end
+      
+      figure(), imagesc(real(img_kspace_corrupted)), colormap gray
+      und_samp_kspace = img_kspace - img_kspace_corrupted;
+      figure(), imagesc(real(und_samp_kspace)), colormap gray
+      
+
     nonzero = sum(sum(und_samp_kspace ~= 0));
     factorUS = (nonzero/(size(img_kspace,1)*size(img_kspace,2))) ;
-    
-    figure(3)
-    imshow(real(und_samp_kspace))
-    title([num2str(100*factorUS) ' percent undersampling'])
+%     
+%     figure(3)
+%     imshow(real(und_samp_kspace))
+%     title([num2str(100*factorUS) ' percent undersampling'])
     
 %STEP4: Acquiring the image back [Sparse k-space sampling]
 img_recov = ifft2(ifftshift(und_samp_kspace));
-figure(4)
+figure()
 imshow(uint8(img_recov))
 title([num2str(100*factorUS) ' percent undersampled'])
 
