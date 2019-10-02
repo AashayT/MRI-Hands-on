@@ -1,26 +1,29 @@
 %Practicing with Cardiac MRI images
 close All,
 clear All,
+clear
 clc
 
 %STEP1: Loading the MRI image
 %Select either the mr-heart image or created test image.
 
 %img = imread('mri_heart_1.jpg');
-img = imread('Cartesian_Heart.PNG');
+img = imread('DeepLearningRecon/Images/CartesianGT/Cartesian_Heart_t7.PNG');
 img = rgb2gray(img);
 figure(1)
 imshow(img)
 
 %resizing to realistic proportions
-resized_img = imresize(img,[70,78]);
+resized_img = double(imresize(img,[140,156]));
 figure()
-imshow(resized_img)
+imagesc(resized_img), colormap gray
 
 %STEP2: Taking Fourier transform of MRI image
 img_kspace = fftshift(fft2(resized_img));
 figure()
 imagesc(real(img_kspace)), colormap gray
+real_kspace = real(img_kspace);
+imag_kspace = imag(img_kspace);
 
 %STEP3: Undersampling the k-space. 
 %FFt values are rearranged before undersampling using fftshift
@@ -64,7 +67,8 @@ imagesc(real(img_kspace)), colormap gray
      %US Scheme 5: Radial undersampling
       num_radial_spokes = 8;
       dtheta = 360/(2*num_radial_spokes);
-      angles = [0:dtheta:359];
+      initialAngle = 35;
+      angles = [initialAngle:dtheta:359+initialAngle];
       
       rows = size(img_kspace,1);
       cols = size(img_kspace,2);
@@ -97,6 +101,8 @@ imagesc(real(img_kspace)), colormap gray
       und_samp_kspace = img_kspace - img_kspace_corrupted;
       figure(), imagesc(real(und_samp_kspace)), colormap gray
       
+      US_kspace_real = real(und_samp_kspace);
+      US_kspace_imag = imag(und_samp_kspace);
 
     nonzero = sum(sum(und_samp_kspace ~= 0));
     factorUS = (nonzero/(size(img_kspace,1)*size(img_kspace,2))) ;
@@ -115,7 +121,7 @@ title([num2str(100*factorUS) ' percent undersampled'])
 %Images will be saved in the folder named 'temp'.
 %Create a new folder named 'temp' before running the following command.
 %Open the function file for more details
-CSreconstruction(und_samp_kspace);
+%CSreconstruction(und_samp_kspace);
 
 % %STEP6: Taking wavelet transform of input MRI image
 
